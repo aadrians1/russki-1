@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<!-- saved from url=(0065)https://vars.hotjar.com/box-5e66f98b4ee957db209dc6f63e3d59dd.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><script type="text/javascript"> 
+/* 
+ * Chrome token signing extension 
+ * 
+ * This library is free software; you can redistribute it and/or 
+ * modify it under the terms of the GNU Lesser General Public 
+ * License as published by the Free Software Foundation; either 
+ * version 2.1 of the License, or (at your option) any later version. 
+ * 
+ * This library is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+ * Lesser General Public License for more details. 
+ * 
+ * You should have received a copy of the GNU Lesser General Public 
+ * License along with this library; if not, write to the Free Software 
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA 
+ */ 
+ 
+// Promises 
+var _eid_promises = {}; 
+// Turn the incoming message from extension 
+// into pending Promise resolving 
+window.addEventListener("message", function(event) { 
+    if(event.source !== window) return; 
+    if(event.data.src && (event.data.src === "eparaksts-background.js")) { 
+        console.log("Page received: "); 
+        console.log(event.data); 
+        // Get the promise 
+        if(event.data.nonce) { 
+            var p = _eid_promises[event.data.nonce]; 
+            // resolve 
+            if(p !== undefined) { 
+                if(event.data.result === "ok") { 
+                    if(event.data.signature !== undefined) { 
+                        p.resolve({hex: event.data.signature}); 
+                    } else if(event.data.version !== undefined && event.data.extension !== undefined) { 
+                        p.resolve(event.data.version + "/js" + event.data.extension); 
+                    } else if(event.data.cert !== undefined) { 
+                        p.resolve({hex: event.data.cert}); 
+                    } else { 
+                        console.log("No idea how to handle message"); 
+                        console.log(event.data); 
+                    } 
+                } else { 
+                    // reject 
+                    p.reject(new Error(event.data.result)); 
+                } 
+            } else { 
+            	console.log("Undefined promise"); 
+            } 
+            delete _eid_promises[event.data.nonce]; 
+        } else { 
+            console.log("No nonce in event msg"); 
+        } 
+    } 
+}, false); 
+ 
+ 
+function eParakstsTokenSigning() { 
+    function nonce() { 
+        var val = ""; 
+        var hex = "abcdefghijklmnopqrstuvwxyz0123456789"; 
+        for(var i = 0; i < 16; i++) val += hex.charAt(Math.floor(Math.random() * hex.length)); 
+        return val; 
+    } 
+ 
+    function messagePromise(msg) { 
+        return new Promise(function(resolve, reject) { 
+            // amend with necessary metadata 
+            msg["nonce"] = nonce(); 
+            msg["src"] = "eparaksts-page.js"; 
+            // send message 
+            window.postMessage(msg, "*"); 
+            // and store promise callbacks 
+            _eid_promises[msg.nonce] = { 
+                resolve: resolve, 
+                reject: reject 
+            }; 
+        }); 
+    } 
+    this.getCertificate = function(options) { 
+        var msg = {type: "CERT", lang: options.lang, operation: options.operation}; 
+        console.log("getCertificate()"); 
+        return messagePromise(msg); 
+    }; 
+    this.sign = function(cert, hash, options) { 
+        var msg = {type: "SIGN", cert: cert.hex, hash: hash.hex, hashtype: hash.type, lang: options.lang, operation: options.operation}; 
+        console.log("sign()"); 
+        return messagePromise(msg); 
+    }; 
+    this.getVersion = function() { 
+        console.log("getVersion()"); 
+        return messagePromise({ 
+            type: "VERSION" 
+        }); 
+    }; 
+} 
+</script></head><body><script>!function(e){var t={};function n(o){if(t[o])return t[o].exports;var r=t[o]={i:o,l:!1,exports:{}};return e[o].call(r.exports,r,r.exports,n),r.l=!0,r.exports}n.m=e,n.c=t,n.d=function(e,t,o){n.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:o})},n.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},n.t=function(e,t){if(1&t&&(e=n(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var o=Object.create(null);if(n.r(o),Object.defineProperty(o,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var r in e)n.d(o,r,function(t){return e[t]}.bind(null,r));return o},n.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return n.d(t,"a",t),t},n.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},n.p="",n(n.s=257)}({257:function(e,t){!function(){var e;try{e={cookie:{get:function(e){var t=new RegExp("(?:^|; )"+e+"=([^;]*)").exec(document.cookie);return t?t[1]:void 0},set:function(e,t,n,o){document.cookie=function(e,t,n,o){return[e+"="+t,"path=/","expires="+n.toUTCString()].concat(o||[]).join("; ")}(e,t,n,o)},remove:function(e){document.cookie=e+"=; expires=Tue, 13 Mar 1979 00:00:00 UTC; path=/;"}}}}catch(e){return}var t={_hjOptOut:new function(t,n,o,r,i){this.parseCommand=function(a,u){var c,s,f,d=e[t],l=a.action,p=a.key,m=a.messageId,h=a.siteId,v=r?p:p+":"+h,g=a.value,y=a.expiresMinutes||1440*(a.expiresDays||365),w=((c=new Date).setTime(c.getTime()+60*y*1e3),c);if(!((s={_hjSet:o,_hjGet:n,_hjRemove:o}[l]||[]).indexOf("*")>=0||s.indexOf(u)>=0))throw new Error("Command "+l+" not allowed on key: "+p);switch(l){case"_hjSet":d.set(v,g,w,i);break;case"_hjGet":g=d.get(v),f=JSON.stringify({messageId:m,value:g||!1}),window.parent.postMessage(f,"*");break;case"_hjRemove":d.remove(v)}}}("cookie",["*"],["https://www.hotjar.com","https://local.hotjar.com","https://insights-staging.hotjar.com"],!0,["SameSite=None","Secure"])};function n(e){try{!function(e,n){e.key&&t[e.key]&&t[e.key].parseCommand(e,n)}(JSON.parse(e.data),e.origin)}catch(e){return null}}window.addEventListener?window.addEventListener("message",n,!1):window.attachEvent("onmessage",n)}()}});</script></body></html>
